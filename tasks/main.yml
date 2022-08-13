@@ -1,0 +1,31 @@
+# ----------------------------------------------------------------------------
+# elasticagent tasks
+# ----------------------------------------------------------------------------
+---
+- name: Set package extension variable
+  set_fact:
+    ait_elasticagent_pkg_ext: '{{ elasticagent_package_ext |
+                            regex_replace(".tar.gz", "tar") |
+                            regex_replace( "\.", "") }}'
+
+- name: Include package specific var file
+  include_vars: 'vars_{{ ait_elasticagent_pkg_ext }}.yml'
+
+- name: debug include
+  debug:
+    msg: 'debug include: {{ ait_elasticagent_pkg_ext }}#{{ ansible_pkg_mgr }}#{{ ansible_service_mgr }}'
+
+- name: Include ait_role task files
+  include_tasks: '{{ lookup("first_found", elasticagent_task_files) }}'
+  vars:
+    - ait_args: '{{ item.args }}'
+  with_items: '{{ elasticagent_roles[ait_role] }}'
+  when: ait_role is defined and elasticagent_roles[ait_role] is defined
+
+# Include task files for individual use
+- name: Include ait_action task file
+  include_tasks: '{{ lookup("first_found", elasticagent_task_files) }}'
+  vars:
+    item:
+      action: '{{ ait_action }}'
+  when: ait_action is defined

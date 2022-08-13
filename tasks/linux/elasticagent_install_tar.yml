@@ -1,0 +1,71 @@
+# ----------------------------------------------------------------------------
+# Install Linux elasticagent packages
+# ----------------------------------------------------------------------------
+---
+# 检查安装目录存在
+- name: Ensure install directory exists
+  file:
+    path: "{{ install_dir }}"
+    state: directory
+    mode: 0755
+
+# 下载安装包
+- name: Download elasticagent tar package
+  get_url:
+    url: '{{ elasticagent_package_url }}'
+    dest: '{{ elasticagent_package }}'
+    timeout: '{{ url_timeout }}'
+    checksum: 'sha512:{{ elasticagent_package_url }}.sha512'
+  register: elasticagent_get_url
+
+# 展开安装包
+- name: Install elasticagent tar package
+  unarchive:
+    src: '{{ elasticagent_package }}'
+    dest: '{{ elasticagent_install_dir }}'
+    remote_src: true
+    list_files: yes
+  register: unarchive_result
+
+####################################
+# fleet server
+####################################
+# 安装
+- name: Install fleet server
+  when: (is_fleet_server is defined) and (is_fleet_server | bool)
+  expect:
+    command: >
+      {{ elasticagent_install_dir }}/{{ unarchive_result.files | first | split('/') | first }}/elastic-agent install 
+      -f
+      --url={{ fleet_server_url }}
+      --fleet-server-es={{ elk_server_url }}
+      --fleet-server-service-token={{ fleet_server_service_token }}
+      --fleet-server-policy={{ elastic_agent_policy_id }}
+      --fleet-server-es-ca={{ elasticagent_install_dir }}/certs/elasticsearch/elasticsearch-ca.crt
+      --certificate-authorities={{ elasticagent_install_dir }}/certs/fleet/ca/ca.crt
+      --fleet-server-cert={{ elasticagent_install_dir }}/certs/fleet/fleet-server/fleet-server.crt
+      --fleet-server-cert-key={{ elasticagent_install_dir }}/certs/fleet/fleet-server/fleet-server.key
+    responses:
+      'Elastic Agent will be installed at (.*) Do you want to continue(.*)': 'Y'
+
+
+####################################
+# elastic agent
+####################################
+- name: Install elastic agent
+  when: (is_fleet_server is not defined) or (not (is_fleet_server | bool))
+  expect:
+    command: >
+      {{ elasticagent_install_dir }}/{{ unarchive_result.files | first | split('/') | first }}/elastic-agent install 
+      -f
+      --url={{ fleet_server_url }}
+      --enrollment-token={{elastic_agent_policy_enrollment_token}}
+      --certificate-authorities={{ elasticagent_install_dir }}/certs/fleet/ca/ca.crt
+    responses:
+      'Elastic Agent will be installed at (.*) Do you want to continue(.*)': 'Y'
+
+# # 删除安装包
+- name: Remove elasticagent tar package
+  file:
+    path: '{{ elasticagent_package }}'
+    state: absent

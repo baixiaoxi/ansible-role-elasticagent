@@ -1,0 +1,18 @@
+# ----------------------------------------------------------------------------
+# Check if elasticagent is running
+# ----------------------------------------------------------------------------
+---
+
+- name: Verify elasticagent is running
+  block:
+    - name: Get elasticagent process
+      shell: set -o pipefail && ps -efw | grep elastic-agent | grep -v grep | awk '{print $2}'
+      args:
+        executable: /bin/bash
+      register: elasticagent_process_id
+      changed_when: false
+      
+    - name: Fail if elasticagent process is not running
+      fail:
+        msg: 'elasticagent is not running'
+      when: elasticagent_process_id.stdout | length == 0

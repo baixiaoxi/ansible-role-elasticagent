@@ -1,0 +1,26 @@
+# ----------------------------------------------------------------------------
+# Configure elasticagent on Linux
+#
+# ----------------------------------------------------------------------------
+---
+
+# 修改配置
+- name: Modify /opt/Elastic/Agent/elastic-agent.yml
+  lineinfile:
+    dest: "/opt/Elastic/Agent/elastic-agent.yml"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - regexp: "agent.logging.level"
+      line: "agent.logging.level: info"
+    - regexp: "agent.logging.to_files"
+      line: "agent.logging.to_files: true"
+    - regexp: "agent.logging.files.path"
+      line: "agent.logging.files.path: /var/log/elastic-agent"
+    - regexp: "agent.logging.files.name"
+      line: "agent.logging.files.name: elastic-agent"
+    - regexp: "agent.logging.files.keepfiles"
+      line: "agent.logging.files.keepfiles: 7"
+    - regexp: "agent.logging.files.permissions"
+      line: "agent.logging.files.permissions: 0755"
+  notify: restart elastic-agent

@@ -1,0 +1,16 @@
+# ----------------------------------------------------------------------------
+# Check if elasticagent is not running
+# ----------------------------------------------------------------------------
+---
+
+- name: Verify elasticagent is not running
+  block:
+    - name: Get elasticagent process
+      shell: "ps -efw | grep elastic-agent | grep -v grep | awk '{print $2}'"
+      args:
+        executable: /bin/bash
+      register: elasticagent_process_id
+      changed_when: false
+      retries: 5
+      delay: 3
+      until: elasticagent_process_id.stdout | length == 0

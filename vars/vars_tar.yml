@@ -1,0 +1,32 @@
+# ----------------------------------------------------------------------------
+# Variables for tar package
+# ----------------------------------------------------------------------------
+
+---
+
+# Run as root
+elasticagent_run_as_root: '{{ install_as_root }}'
+
+# elasticagent install directory
+elasticagent_install_dir: '{{ install_dir }}'
+
+# elasticagent package
+elasticagent_package: '{{ elasticagent_install_dir }}/{{ elasticagent_package_url | basename }}'
+
+# elasticagent root directory
+elasticagent_root: "{{ (elasticagent_package.split(elasticagent_package_ext) | first).split('/') | last }}"
+elasticagent_rootdir: "{{ elasticagent_install_dir }}/{{ elasticagent_root }}"
+
+# elasticagent bin
+elasticagent_exe: '{{ elasticagent_rootdir }}/elastic-agent'
+
+# elasticagent config
+elasticagent_config_dir: '{{ elasticagent_install_dir | trim }}/config'
+elasticagent_config_file: '{{ elasticagent_config_dir }}/elasticagent.yml'
+
+# elasticagent log
+elasticagent_log_dir: '/var/log/elastic-agent'
+elasticagent_log_file: '{{ elasticagent_log_dir }}/elasticagent-plain.log'
+
+# elasticagent conf
+elasticagent_conf_path: '{{ elasticagent_config_dir }}/elasticagent.conf'

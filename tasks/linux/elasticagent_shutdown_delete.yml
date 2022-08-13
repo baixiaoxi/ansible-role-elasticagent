@@ -1,0 +1,24 @@
+# ----------------------------------------------------------------------------
+# Stop elasticagent
+# ----------------------------------------------------------------------------
+---
+
+# Changed from SIGTERM to SIGKILL on Oct 23, 2019 by mike.place@elastic.co
+# This should be changed back to SIGTERM after the issue below is resolved:
+# https://github.com/elastic/elasticagent/issues/11253
+- name: Stop elasticagent process
+  block:
+    - name: Get elasticagent process
+      shell: "ps -efw | grep elastic-agent | grep -v grep | awk '{print $2}'"
+      args:
+        executable: /bin/bash
+      register: elasticagent_stop_process_id
+      changed_when: false
+    - name: Stop elasticagent process
+      command: "kill -SIGKILL {{ elasticagent_stop_process_id.stdout }}"
+      when: elasticagent_stop_process_id.stdout | length > 0
+  failed_when: false
+  changed_when: false
+  async: 5
+  poll: 0
+  tags: stop_elasticagent

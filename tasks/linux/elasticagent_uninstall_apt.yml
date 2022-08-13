@@ -1,0 +1,12 @@
+# ----------------------------------------------------------------------------
+# Uninstall Linux elasticagent packages
+# ----------------------------------------------------------------------------
+---
+
+- name: Uninstall elasticagent deb package
+  apt:
+    name: 'elasticagent'
+    state: absent
+    purge: true
+  become: true
+  tags: uninstall_elasticagent

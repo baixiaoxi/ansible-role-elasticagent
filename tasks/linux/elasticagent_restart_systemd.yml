@@ -1,0 +1,10 @@
+# ----------------------------------------------------------------------------
+# Start elasticsearch
+# ----------------------------------------------------------------------------
+---
+# 重启elastic-agent
+- name: Restart elasticagent
+  systemd:
+      name: 'elastic-agent'
+      state: restarted
+  become: true

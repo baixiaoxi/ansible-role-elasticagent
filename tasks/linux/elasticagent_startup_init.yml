@@ -1,0 +1,11 @@
+# ----------------------------------------------------------------------------
+# Start elasticagent
+# ----------------------------------------------------------------------------
+---
+
+- name: Start elasticagent service
+  service:
+    name: 'elasticagent'
+    state: started
+  become: true
+  tags: start_elasticagent

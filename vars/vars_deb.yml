@@ -1,0 +1,27 @@
+# ----------------------------------------------------------------------------
+# Variables for deb package
+# ----------------------------------------------------------------------------
+
+---
+
+# Run as root
+elasticagent_run_as_root: true
+
+# elasticagent package
+elasticagent_package: "{{ lookup('env','AIT_VM_INSTALL_DIR') }}/{{ elasticagent_package_url | basename }}"
+
+# elasticagent bin
+elasticagent_bin_dir: '/usr/share/elasticagent/bin'
+elasticagent_exe: '{{ elasticagent_bin_dir }}/elasticagent'
+elasticagent_plugin_exe: '{{ elasticagent_bin_dir }}/elasticagent-plugin'
+
+# elasticagent logs
+elasticagent_log_dir: '{{ elasticagent_rootdir | trim }}/logs'
+elasticagent_log_file: '{{ elasticagent_log_dir }}/elastic-agent'
+
+# elasticagent config
+elasticagent_config_dir: '/etc/elasticagent'
+elasticagent_config_file: '{{ elasticagent_config_dir }}/elasticagent.yml'
+
+# elasticagent conf
+elasticagent_conf_path: '{{ elasticagent_config_dir }}/elasticagent.conf'

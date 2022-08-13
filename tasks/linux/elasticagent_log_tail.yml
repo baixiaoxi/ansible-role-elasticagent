@@ -1,0 +1,59 @@
+# ----------------------------------------------------------------------------
+# elasticagent log tail
+# 检查日志, 查找字符串
+# ----------------------------------------------------------------------------
+---
+# 获取系统时间
+- name: Get system date
+  command: date
+  register: elasticagent_date
+  changed_when: false
+
+# 系统时间格式化
+- name: Get date now
+  command: date +"%Y-%m-%dT%H:%M" --date "{{ elasticagent_date.stdout }}"
+  register: elasticagent_date_now
+  changed_when: false
+
+# 当前时间前一分钟
+- name: Get date lower limit
+  command: date +"%Y-%m-%dT%H:%M" --date "{{ elasticagent_date.stdout }} -1 minutes"
+  register: elasticagent_date_lower
+  changed_when: false
+
+# 当前时间后一分钟
+- name: Get date higher limit
+  command: date +"%Y-%m-%dT%H:%M" --date "{{ elasticagent_date.stdout }} +1 minutes"
+  register: elasticagent_date_higher
+  changed_when: false
+
+# 查询字符串
+- name: Set search string
+  set_fact:
+    search_str: "{%- if ait_args is defined -%}
+                    {{ elasticagent_log_find[ait_args.get('ait_log_searchstr')] }}
+                 {%- elif ait_log_searchstr is defined -%}
+                    {{ elasticagent_log_find[ait_log_searchstr] }}
+                 {%- endif -%}"
+
+# 获取当前日期
+- name: Get date no time
+  command: date +"%Y%m%d" --date "{{ elasticagent_date.stdout }}"
+  register: elasticagent_date_no_time
+  changed_when: false
+
+# 获取日志文件
+- name: Find elastic-agent log file
+  shell: 'ls -Art {{ elasticagent_log_dir }} | tail -n 1'
+  register: elasticagent_log_file
+
+- name: debug
+  debug:
+    msg: 'debug###{{ ait_args }}# {{ search_str }}'
+
+# 检查日志文件, 查询字符串
+- name: Wait for log file and search string to be present
+  wait_for:
+    path: '{{ elasticagent_log_dir + "/" + elasticagent_log_file.stdout }}'
+    timeout: '{{ elasticagent_timeout }}'
+    search_regex: '({{ elasticagent_date_now.stdout }}|{{ elasticagent_date_lower.stdout }}|{{ elasticagent_date_higher.stdout }})([\w*\W*\n]*){{ search_str }}'

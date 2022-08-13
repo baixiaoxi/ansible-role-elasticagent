@@ -1,0 +1,22 @@
+# ----------------------------------------------------------------------------
+# Install Linux elasticagent packages
+# ----------------------------------------------------------------------------
+---
+
+- name: Download elasticagent deb package
+  get_url:
+    url: '{{ elasticagent_package_url }}'
+    dest: '{{ elasticagent_package }}'
+    timeout: '{{ url_timeout }}'
+    checksum: 'sha512:{{ elasticagent_package_url }}.sha512'
+  tags: package_elasticagent
+  register: elasticagent_get_url
+  until: elasticagent_get_url is not failed
+  retries: 2
+  delay: 30
+
+- name: Install elasticagent deb package
+  apt:
+    deb: '{{ elasticagent_package }}'
+  become: true
+  tags: install_elasticagent

@@ -1,0 +1,11 @@
+# ----------------------------------------------------------------------------
+# Uninstall Linux elasticagent packages
+# ----------------------------------------------------------------------------
+---
+
+- name: Uninstall elasticagent rpm package
+  yum:
+    name: 'elasticagent'
+    state: absent
+  become: true
+  tags: uninstall_elasticagent

@@ -1,0 +1,10 @@
+# ----------------------------------------------------------------------------
+# Start elasticsearch
+# ----------------------------------------------------------------------------
+---
+
+- name: Restart elasticagent
+  service:
+    name: 'elasticagent'
+    state: restarted
+  become: true

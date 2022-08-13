@@ -1,0 +1,19 @@
+# ----------------------------------------------------------------------------
+# Shutdown elasticagent
+# ----------------------------------------------------------------------------
+---
+# 检查elastic-agent是否安装
+- name: Check if the elastic-agent package is installed
+  shell: "systemctl status elastic-agent"
+  register: elasticagent_package_install
+  failed_when: False
+  changed_when: False
+  check_mode: no
+
+- name: Stop elasticagent systemd
+  become: true
+  tags: stop_elasticagent
+  when: elasticagent_package_install.stderr == ''
+  systemd:
+    name: 'elastic-agent.service'
+    state: stopped

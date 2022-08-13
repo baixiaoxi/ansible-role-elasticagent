@@ -1,0 +1,21 @@
+---
+
+galaxy_info:
+  role_name: elasticagent
+  author: baixiaoxi
+  description: ansible role for elasticagent
+  company: ""
+  license: 'License (Apache)'
+  min_ansible_version: '2.10'
+
+  platforms:
+    - name: Ubuntu
+      versions:
+        - "bionic"
+        - "focal"
+        - "jammy"
+  galaxy_tags:
+    - elasticsearch
+    - elasticagent
+
+dependencies: []

@@ -1,0 +1,108 @@
+# ----------------------------------------------------------------------------
+# Configure elasticagent on Linux
+#
+# ----------------------------------------------------------------------------
+---
+
+# 上传秘钥
+- name: Ensure certs folder exists'
+  file:
+    path: "{{ directory_item }}"
+    state: directory
+    mode: 0755
+  loop_control:
+    loop_var: directory_item
+  with_items:
+    - "{{ elasticagent_install_dir }}/certs"
+    - "{{ elasticagent_install_dir }}/certs/kibana"
+    - "{{ elasticagent_install_dir }}/certs/elasticsearch"
+    - "{{ elasticagent_install_dir }}/certs/fleet"
+    - "{{ elasticagent_install_dir }}/certs/fleet/ca"
+    - "{{ elasticagent_install_dir }}/certs/fleet/fleet-server"
+
+# 上传秘钥
+- name: Upload certificate files
+  copy:
+    src: "{{ elk_certs_dir }}/{{ certs_item }}"
+    dest: "{{ elasticagent_install_dir }}/certs/{{ certs_item }}"
+    mode: 0755
+  with_items:
+    - elasticsearch/elasticsearch-ca.crt
+    - kibana/elasticsearch-ca.pem
+    - fleet/ca/ca.crt
+    - fleet/fleet-server/fleet-server.crt
+    - fleet/fleet-server/fleet-server.key
+  loop_control:
+    loop_var: certs_item
+
+# 删除原有的service token
+- name: Delete old fleet-server service token
+  become: yes
+  uri:
+    method: DELETE
+    url: "{{ es_api_uri }}/_security/service/elastic/fleet-server/credential/token/{{ ansible_hostname }}"
+    user: "{{ es_api_basic_auth_username }}"
+    password: "{{ es_api_basic_auth_password }}"
+    force_basic_auth: yes
+    ca_path: "{{ elasticagent_install_dir }}/certs/kibana/elasticsearch-ca.pem"
+    return_content: yes
+    status_code: 404,200
+  register: service_token_delete
+
+####################################
+# fleet server
+# 对应的policy已在kibana.yml中配置
+####################################
+- name: Fleet server
+  when: (is_fleet_server is defined) and (is_fleet_server | bool)
+  block:
+    # 创建新的token
+    - name: Create fleet-server service token
+      become: yes
+      uri:
+        method: POST
+        url: "{{ es_api_uri }}/_security/service/elastic/fleet-server/credential/token/{{ ansible_hostname }}"
+        user: "{{ es_api_basic_auth_username }}"
+        password: "{{ es_api_basic_auth_password }}"
+        force_basic_auth: yes
+        ca_path: "{{ elasticagent_install_dir }}/certs/kibana/elasticsearch-ca.pem"
+        return_content: yes
+      register: fleet_server_token_result
+
+    # 提取fleet server service token
+    - name: Get fleet server service token
+      set_fact:
+        fleet_server_service_token: "{{ fleet_server_token_result.json.token.value }}" 
+
+####################################
+# elastic agent
+# 对应的policy已在kibana.yml中配置, 自动生成token
+####################################
+- name: Elastic agent
+  when: (is_fleet_server is not defined) or (not (is_fleet_server | bool))
+  block:
+    # 获取policy对应的enrollment token
+    - name: Get Enrollment token
+      become: yes
+      uri:
+        method: GET
+        url: "{{ kibana_api_uri }}/api/fleet/enrollment_api_keys"
+        user: "{{ es_api_basic_auth_username }}"
+        password: "{{ es_api_basic_auth_password }}"
+        force_basic_auth: yes
+        ca_path: "{{ elasticagent_install_dir }}/certs/kibana/elasticsearch-ca.pem"
+        return_content: yes
+      register: policies_enrollment_token_result
+
+    - name: debug enrollment token
+      debug:
+        msg: "debug enrollment:{{ policies_enrollment_token_result }}"
+
+    # 提取enrollment token
+    - name: Get enrollment token
+      set_fact:
+        elastic_agent_policy_enrollment_token: "{{ (policies_enrollment_token_result.json.list | selectattr('policy_id', 'equalto', elastic_agent_policy_id) | first).api_key }}"
+
+    - name: debug enrollment token
+      debug:
+        msg: "debug enrollment#{{ elastic_agent_policy_enrollment_token }}"

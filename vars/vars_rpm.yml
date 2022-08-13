@@ -1,0 +1,26 @@
+# ----------------------------------------------------------------------------
+# Variables for rpm package
+# ----------------------------------------------------------------------------
+
+---
+
+# Run as root
+elasticagent_run_as_root: true
+
+# elasticagent package
+elasticagent_package: "{{ lookup('env','AIT_VM_INSTALL_DIR') }}/{{ elasticagent_package_url | basename }}"
+
+# elasticagent bin
+elasticagent_bin_dir: '/usr/share/elasticagent/bin'
+elasticagent_exe: '{{ elasticagent_bin_dir }}/elasticagent'
+
+# elasticagent logs
+elasticagent_log_dir: "{{ lookup('env','AIT_VM_INSTALL_DIR') }}/log/elasticagent"
+elasticagent_log_file: '{{ elasticagent_log_dir }}/elasticagent.log'
+
+# elasticagent config
+elasticagent_config_dir: '/etc/elasticagent'
+elasticagent_config_file: '{{ elasticagent_config_dir }}/elasticagent.yml'
+
+# elasticagent conf
+elasticagent_conf_path: '{{ elasticagent_config_dir }}/elasticagent.conf'

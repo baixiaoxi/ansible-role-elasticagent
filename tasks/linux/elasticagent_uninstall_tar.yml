@@ -1,0 +1,26 @@
+# ----------------------------------------------------------------------------
+# Uninstall Linux elasticagent packages
+# ----------------------------------------------------------------------------
+---
+# 卸载
+- name: Uninstall elastic-agent
+  when: elasticagent_package_install.stderr == ''
+  expect: 
+    command: 'elastic-agent uninstall'
+    responses:
+      'Elastic Agent will be uninstalled from your system at (.*) Do you want to continue(.*)': 'Y'
+
+- name: debug uninstall
+  debug:
+    msg: 'debug uninstall {{ elasticagent_root }} # {{ elasticagent_rootdir }}'
+
+# 删除根目录
+- name: Remove elastic-agent directory
+  file:
+    path: '{{ item }}'
+    state: absent
+  with_items:
+    - /var/log/elastic-agent
+    - '{{ elasticagent_install_dir }}'
+    - /opt/Elastic
+  tags: uninstall_elasticagent

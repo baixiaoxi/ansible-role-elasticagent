@@ -1,0 +1,11 @@
+# ----------------------------------------------------------------------------
+# Shutdown elasticagent
+# ----------------------------------------------------------------------------
+---
+
+- name: Stop elasticagent service
+  service:
+    name: 'elasticagent'
+    state: stopped
+  become: true
+  tags: stop_elasticagent

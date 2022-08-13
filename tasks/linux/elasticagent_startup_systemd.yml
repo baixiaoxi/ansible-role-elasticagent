@@ -1,0 +1,11 @@
+# ----------------------------------------------------------------------------
+# Start elasticagent
+# ----------------------------------------------------------------------------
+---
+# 启动
+- name: Start elasticagent systemd
+  systemd:
+    name: 'elastic-agent'
+    state: started
+  become: true
+  tags: start_elasticagent
